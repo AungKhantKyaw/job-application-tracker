@@ -1,0 +1,50 @@
+<!-- File: applications/templates/applications/application_list.html -->
+{% extends 'applications/base.html' %}
+
+{% block title %}Job Applications{% endblock %}
+
+{% block content %}
+<div class="card">
+    <h2 style="margin-bottom: 20px;">Your Applications</h2>
+    
+    <div class="filter-bar">
+        <span style="font-weight: 600;">Filter by status:</span>
+        <a href="{% url 'application-list' %}" class="btn" style="padding: 6px 12px; font-size: 13px;">All</a>
+        {% for value, label in status_choices %}
+        <a href="?status={{ value }}" class="btn" style="padding: 6px 12px; font-size: 13px;">{{ label }}</a>
+        {% endfor %}
+    </div>
+
+    {% if applications %}
+    <table>
+        <thead>
+            <tr>
+                <th>Company</th>
+                <th>Position</th>
+                <th>Status</th>
+                <th>Applied Date</th>
+                <th>Location</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for app in applications %}
+            <tr>
+                <td><strong>{{ app.company }}</strong></td>
+                <td>{{ app.position }}</td>
+                <td><span class="status-badge status-{{ app.status }}">{{ app.get_status_display }}</span></td>
+                <td>{{ app.applied_date|date:"M d, Y" }}</td>
+                <td>{{ app.location|default:"—" }}</td>
+                <td>
+                    <a href="{% url 'application-detail' app.pk %}" style="color: #3498db; text-decoration: none; margin-right: 10px;">View</a>
+                    <a href="{% url 'application-update' app.pk %}" style="color: #27ae60; text-decoration: none;">Edit</a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p style="text-align: center; color: #999; padding: 40px;">No applications found. <a href="{% url 'application-create' %}">Add your first application</a></p>
+    {% endif %}
+</div>
+{% endblock %}

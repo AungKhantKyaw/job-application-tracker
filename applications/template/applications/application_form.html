@@ -1,0 +1,29 @@
+<!-- File: applications/templates/applications/application_form.html -->
+{% extends 'applications/base.html' %}
+
+{% block title %}{% if form.instance.pk %}Edit{% else %}Add{% endif %} Application{% endblock %}
+
+{% block content %}
+<div class="card">
+    <h2 style="margin-bottom: 20px;">{% if form.instance.pk %}Edit{% else %}Add New{% endif %} Application</h2>
+
+    <form method="post">
+        {% csrf_token %}
+        
+        {% for field in form %}
+        <div class="form-group">
+            <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+            {{ field }}
+            {% if field.errors %}
+            <div style="color: #e74c3c; font-size: 13px; margin-top: 5px;">{{ field.errors.0 }}</div>
+            {% endif %}
+        </div>
+        {% endfor %}
+
+        <div class="actions">
+            <button type="submit" class="btn btn-success">Save</button>
+            <a href="{% url 'application-list' %}" class="btn" style="background: #95a5a6;">Cancel</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

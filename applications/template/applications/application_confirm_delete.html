@@ -1,0 +1,22 @@
+<!-- File: applications/templates/applications/application_confirm_delete.html -->
+{% extends 'applications/base.html' %}
+
+{% block title %}Delete Application{% endblock %}
+
+{% block content %}
+<div class="card">
+    <h2 style="margin-bottom: 20px;">Confirm Deletion</h2>
+    
+    <p style="font-size: 16px; margin-bottom: 20px;">
+        Are you sure you want to delete the application for <strong>{{ application.position }}</strong> at <strong>{{ application.company }}</strong>?
+    </p>
+
+    <form method="post">
+        {% csrf_token %}
+        <div class="actions">
+            <button type="submit" class="btn btn-danger">Yes, Delete</button>
+            <a href="{% url 'application-detail' application.pk %}" class="btn" style="background: #95a5a6;">Cancel</a>
+        </div>
+    </form>
+</div>
+{% endblock %}
