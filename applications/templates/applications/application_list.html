@@ -24,7 +24,6 @@
                 <th>Status</th>
                 <th>Applied Date</th>
                 <th>Location</th>
-                <th>Actions</th>
             </tr>
         </thead>
         <tbody>
@@ -35,10 +34,6 @@
                 <td><span class="status-badge status-{{ app.status }}">{{ app.get_status_display }}</span></td>
                 <td>{{ app.applied_date|date:"M d, Y" }}</td>
                 <td>{{ app.location|default:"—" }}</td>
-                <td>
-                    <a href="{% url 'application-detail' app.pk %}" style="color: #3498db; text-decoration: none; margin-right: 10px;">View</a>
-                    <a href="{% url 'application-update' app.pk %}" style="color: #27ae60; text-decoration: none;">Edit</a>
-                </td>
             </tr>
             {% endfor %}
         </tbody>
