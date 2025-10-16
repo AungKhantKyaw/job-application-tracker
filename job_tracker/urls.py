@@ -16,8 +16,14 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
+from rest_framework import routers
+from applications.api.views import JobApplicationViewSet
+
+router = routers.DefaultRouter()
+router.register(r"applications", JobApplicationViewSet, basename="application")
 
 urlpatterns = [
-    path('admin/', admin.site.urls),
-    path('', include('applications.urls')),
+    path("admin/", admin.site.urls),
+    path("api/", include(router.urls)),  # new API endpoint
+    path("", include("applications.urls")),  # keep your existing views
 ]
