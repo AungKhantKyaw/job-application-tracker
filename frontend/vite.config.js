@@ -4,5 +4,13 @@ import tailwindcss from '@tailwindcss/vite'
 
 // https://vite.dev/config/
 export default defineConfig({
-  plugins: [react(), tailwindcss()],
+  plugins: [
+    react(),
+    tailwindcss()
+  ],
+  server: {
+    host: '0.0.0.0', // container listens on all network interfaces
+    port: 5175,       // make sure this matches docker-compose
+    strictPort: true, // fail if port is taken
+  },
 })
