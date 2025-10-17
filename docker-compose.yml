@@ -1,0 +1,23 @@
+services:
+  django:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: django-app
+    env_file:
+      - .env
+    volumes:
+      - ./:/app
+    ports:
+      - "8001:8001"  # host:container
+
+  react:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: react-app
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    ports:
+      - "5175:5175"  # host:container
