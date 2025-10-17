@@ -1,124 +1,174 @@
 # 📋 Job Application Tracker
 
-A Django-based web application to help you organize and track your job applications in one place. Keep track of companies, positions, application status, and important dates with an intuitive interface.
+A full-stack **Job Application Tracker** built with **Django (backend)** and **React + Vite + TailwindCSS (frontend)**.  
+Easily organize, monitor, and manage your job applications — keep track of company names, positions, statuses, and key dates — all in one place.
+
+---
 
 ## ✨ Features
 
-- 
+✅ **Frontend (React + Vite + TailwindCSS)**  
+- Clean, responsive UI built with TailwindCSS  
+- Real-time application list with API integration  
+- **Filter by Status** (All, Applied, Phone Screen, Interview, Offer, Rejected, Withdrawn)  
+- **Application Detail View** for deeper insight  
+- Smooth navigation using React Router  
+
+✅ **Backend (Django REST Framework)**  
+- RESTful API for managing applications  
+- Admin panel for quick CRUD operations  
+- PostgreSQL support (configurable)  
+- CORS enabled for frontend integration  
+
+✅ **Docker Support**  
+- One-command startup with Docker Compose  
+- Separate services for React and Django  
+
+---
 
 ## 🚀 Quick Start
 
-### Prerequisites
-
-- Python 3.8 or higher
-- pip (Python package installer)
+### 🧰 Prerequisites
+- Python
+- Node.js
+- Docker & Docker Compose (optional but recommended)
 - Git
 
-### Installation
+---
 
-1. **Clone the repository**
+### 🖥️ Local Development (without Docker)
+
+#### 1. Clone the repository
+```bash
+git clone https://github.com/AungKhantKyaw/job-application-tracker.git
+cd job-application-tracker
+```
+
+#### 2. Backend Setup (Django)
+```bash
+cd backend
+python -m venv venv
+source venv/bin/activate   # On macOS/Linux
+venv\Scripts\activate      # On Windows
+
+pip install -r requirements.txt
+python manage.py makemigrations
+python manage.py migrate
+python manage.py createsuperuser
+python manage.py runserver
+```
+
+Backend API runs at **http://127.0.0.1:8001**
+
+#### 3. Frontend Setup (React + Vite)
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+Frontend runs at **http://localhost:5175**
+
+---
+
+### 🐳 Using Docker (Recommended)
+
+1. Build and start both services:
    ```bash
-   git clone https://github.com/AungKhantKyaw/job-application-tracker.git
-   cd job-application-tracker
+   docker-compose up --build
    ```
 
-2. **Create a virtual environment**
+2. Access the apps:
+   - Frontend: **http://localhost:5175**
+   - Backend (API): **http://127.0.0.1:8001/api/applications/**
+
+3. Stop the containers:
    ```bash
-   python -m venv venv
-   
-   # On Windows
-   venv\Scripts\activate
-   
-   # On macOS/Linux
-   source venv/bin/activate
+   docker-compose down
    ```
 
-3. **Install dependencies**
-   ```bash
-   pip install -r requirements.txt
-   ```
-
-4. **Run migrations**
-   ```bash
-   python manage.py makemigrations
-   python manage.py migrate
-   ```
-
-5. **Create a superuser (optional)**
-   ```bash
-   python manage.py createsuperuser
-   ```
-
-6. **Start the development server**
-   ```bash
-   python manage.py runserver
-   ```
-
-7. **Open your browser**
-   
-   Navigate to `http://127.0.0.1:8000/`
+---
 
 ## 📖 Usage
 
-### Adding a New Application
+### 🧩 Adding a New Application
+1. Go to Django Admin (`/admin`)
+2. Click **Applications**
+3. Add details:
+   - Company name
+   - Position
+   - Status (Applied, Interview, etc.)
+   - Location, Salary, Notes, Dates
 
-1. Click on **"+ Add New"** in the navigation bar
-2. Fill in the application details:
-   - Company name (required)
-   - Position (required)
-   - Status
-   - Location
-   - Salary range
-   - Job URL
-   - Description
-   - Personal notes
-   - Applied date
-   - Follow-up date
-3. Click **"Save"**
+### 🗂 Viewing Applications
+- **All Applications**: Default list view  
+- **Filter by Status**: Choose from buttons (All, Applied, Offer, etc.)  
+- **View Details**: Click a card to see full details
 
-### Viewing Applications
+### ✏️ Editing & Deleting
+- Manage directly through Django Admin
 
-- **All Applications**: View all your applications in a table format on the home page
-- **Filter by Status**: Use the filter bar to view applications by specific status
-- **View Details**: Click "View" next to any application to see full details
-
-### Editing Applications
-
-1. Click **"Edit"** next to an application in the list, or
-2. View the application details and click the **"Edit"** button
-3. Update the information and click **"Save"**
-
-### Deleting Applications
-
-1. View the application details
-2. Click the **"Delete"** button
-3. Confirm the deletion
+---
 
 ## 🗂️ Project Structure
 
 ```
 job-application-tracker/
-├── job_tracker/              # Project configuration
-│   ├── settings.py          # Django settings
-│   ├── urls.py              # Main URL configuration
-│   ├── wsgi.py              # WSGI configuration
-│   └── asgi.py              # ASGI configuration
-├── applications/             # Main application
-│   ├── models.py            # Database models
-│   ├── views.py             # View logic
-│   ├── urls.py              # App URL patterns
-│   ├── forms.py             # Form definitions
-│   ├── admin.py             # Admin configuration
-│   └── templates/           # HTML templates
-│       └── applications/
-│           ├── base.html
-│           ├── application_list.html
-│           ├── application_detail.html
-│           ├── application_form.html
-│           └── application_confirm_delete.html
-├── manage.py                # Django management script
-├── requirements.txt         # Python dependencies
-├── .gitignore              # Git ignore file
-└── README.md               # This file
+├── backend/
+│   ├── applications/
+│   │   ├── models.py           # Application model
+│   │   ├── views.py            # API views
+│   │   ├── serializers.py      # DRF serializers
+│   │   ├── urls.py             # API endpoints
+│   └── job_tracker/
+│       ├── settings.py         # Django settings
+│       ├── urls.py             # Main URL configuration
+│       ├── wsgi.py / asgi.py
+│   ├── manage.py
+│   └── requirements.txt
+│
+├── frontend/
+│   ├── src/
+│   │   ├── components/
+│   │   │   ├── ApplicationList.jsx
+│   │   │   ├── ApplicationDetail.jsx
+│   │   ├── App.jsx
+│   │   └── main.jsx
+│   ├── package.json
+│   ├── vite.config.js
+│   └── tailwind.config.js
+│
+├── docker-compose.yml
+├── Dockerfile (for both Django & React)
+└── README.md
 ```
 
+---
+
+## 🧠 Tech Stack
+
+| Layer          | Technology                              |
+|----------------|------------------------------------------|
+| Frontend       | React, Vite, TailwindCSS             |
+| Backend        | Django, Django REST Framework           |
+| Database       | SQLite                     |
+| Containerization | Docker, Docker Compose                |
+
+---
+
+## 🔧 Environment Variables
+
+Create `.env` files as needed:
+
+**Backend (.env)**
+```
+DEBUG=True
+SECRET_KEY=your_secret_key
+DATABASE_URL=sqlite:///db.sqlite3
+CORS_ALLOWED_ORIGINS=http://localhost:5175
+```
+
+**Frontend (.env)**
+```
+VITE_API_URL=http://127.0.0.1:8001/api/
+```
