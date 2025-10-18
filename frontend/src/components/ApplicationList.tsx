@@ -1,11 +1,14 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import axios from "axios";
+import { Application } from "../types/Application";
 
 const API_URL = "http://127.0.0.1:8001/api/applications/";
 
-// Status configuration for easy extension
-const STATUS_CONFIG = {
+const STATUS_CONFIG: Record<
+  string,
+  { bg: string; text: string }
+> = {
   applied: { bg: "bg-blue-100", text: "text-blue-600" },
   phone_screen: { bg: "bg-green-400", text: "text-white-600" },
   interviewing: { bg: "bg-yellow-100", text: "text-yellow-600" },
@@ -22,23 +25,21 @@ const STATUS_OPTIONS = [
   "offer",
   "rejected",
   "withdrawn",
-];
+] as const;
 
 export default function ApplicationList() {
-  const [applications, setApplications] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [filterStatus, setFilterStatus] = useState("all");
+  const [applications, setApplications] = useState<Application[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
+  const [filterStatus, setFilterStatus] = useState<string>("all");
 
   useEffect(() => {
     const fetchApplications = async () => {
       try {
         setLoading(true);
-        setError(null);
-        const res = await axios.get(API_URL);
+        const res = await axios.get<Application[]>(API_URL);
         setApplications(res.data);
-      } catch (err) {
-        console.error(err);
+      } catch {
         setError("Failed to load applications. Please try refreshing.");
       } finally {
         setLoading(false);
@@ -48,18 +49,17 @@ export default function ApplicationList() {
     fetchApplications();
   }, []);
 
-  const formatDate = (dateString) => {
+  const formatDate = (dateString?: string) => {
     if (!dateString) return null;
     const date = new Date(dateString);
     return isNaN(date.getTime()) ? "Invalid date" : date.toLocaleDateString();
   };
 
-  const getStatusClasses = (status) => {
+  const getStatusClasses = (status: string) => {
     const config = STATUS_CONFIG[status] || STATUS_CONFIG.default;
     return `${config.bg} ${config.text}`;
   };
 
-    // Filtered applications
   const filteredApplications =
     filterStatus === "all"
       ? applications

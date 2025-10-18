@@ -1,25 +1,22 @@
-// src/components/ApplicationDetail.jsx
 import { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import axios from "axios";
+import { Application } from "../types/Application";
 
 const API_URL = "http://127.0.0.1:8001/api/applications/";
 
 export default function ApplicationDetail() {
-  const { id } = useParams();
-  const [application, setApplication] = useState(null);
+  const { id } = useParams<{ id: string }>();
+  const [application, setApplication] = useState<Application | null>(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchApplication = async () => {
       try {
-        setLoading(true);
-        setError(null);
-        const res = await axios.get(`${API_URL}${id}/`);
+        const res = await axios.get<Application>(`${API_URL}${id}/`);
         setApplication(res.data);
-      } catch (err) {
-        console.error(err);
+      } catch {
         setError("Failed to load application.");
       } finally {
         setLoading(false);
@@ -29,7 +26,7 @@ export default function ApplicationDetail() {
     fetchApplication();
   }, [id]);
 
-  const formatDate = (dateString) => {
+  const formatDate = (dateString?: string) => {
     if (!dateString) return "N/A";
     const date = new Date(dateString);
     return isNaN(date.getTime()) ? "Invalid date" : date.toLocaleDateString();

@@ -1,7 +1,9 @@
-import './App.css'
+import "./App.css";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import ApplicationList from "./components/ApplicationList";
 import ApplicationDetail from "./components/ApplicationDetail";
+
+
 
 export default function App() {
   return (
