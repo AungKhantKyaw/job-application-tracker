@@ -9,12 +9,14 @@ const STATUS_CONFIG: Record<
   string,
   { bg: string; text: string }
 > = {
-  applied: { bg: "bg-blue-100", text: "text-blue-600" },
-  phone_screen: { bg: "bg-green-400", text: "text-white-600" },
-  interviewing: { bg: "bg-yellow-100", text: "text-yellow-600" },
-  rejected: { bg: "bg-red-100", text: "text-red-600" },
-  offered: { bg: "bg-green-100", text: "text-green-600" },
-  default: { bg: "bg-gray-100", text: "text-gray-600" },
+  applied: { bg: "bg-blue-100", text: "text-black" },
+  phone_screen: { bg: "bg-green-400", text: "text-white" },
+  interview: { bg: "bg-emerald-500", text: "text-white" },
+  coding_test: { bg: "bg-amber-500", text: "text-white" },
+  second_interview: { bg: "bg-teal-100", text: "text-yellow" },
+  rejected: { bg: "bg-red-500", text: "text-white" },
+  offered: { bg: "bg-green-100", text: "text-green" },
+  default: { bg: "bg-gray-100", text: "text-gray" },
 };
 
 const STATUS_OPTIONS = [
@@ -22,9 +24,10 @@ const STATUS_OPTIONS = [
   "applied",
   "phone_screen",
   "interview",
-  "offer",
+  "coding_test",
+  "second_interview",
+  "offered",
   "rejected",
-  "withdrawn",
 ] as const;
 
 export default function ApplicationList() {

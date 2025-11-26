@@ -7,7 +7,9 @@ class JobApplication(models.Model):
         ('applied', 'Applied'),
         ('phone_screen', 'Phone Screen'),
         ('interview', 'Interview'),
-        ('offer', 'Offer'),
+        ('coding_test', 'Coding Test'),
+        ('second_interview', 'Second Interview'),
+        ('offered', 'Offered'),
         ('rejected', 'Rejected'),
         ('withdrawn', 'Withdrawn'),
     ]
