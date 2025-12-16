@@ -8,6 +8,9 @@ export default defineConfig({
     react(),
     tailwindcss()
   ],
+  optimizeDeps: {
+    force: true,
+  },
   server: {
     host: '0.0.0.0', // container listens on all network interfaces
     port: 5175,       // make sure this matches docker-compose
