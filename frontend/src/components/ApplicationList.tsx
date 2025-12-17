@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { Application } from "../types/Application";
 import {
@@ -9,7 +9,7 @@ import {
   Legend,
 } from "chart.js";
 import { Pie } from "react-chartjs-2";
-import { Briefcase } from "lucide-react";
+import { Briefcase, Trash2, Calendar } from "lucide-react";
 
 ChartJS.register(ArcElement, Tooltip, Legend);
 
@@ -59,7 +59,33 @@ export default function ApplicationList() {
   const [error, setError] = useState<string | null>(null);
   const [filterStatus, setFilterStatus] = useState<string>("all");
   const [searchQuery, setSearchQuery] = useState<string>("");
-  const [viewMode, setViewMode] = useState<"cards" | "list">("cards");
+  const navigate = useNavigate();
+
+  const handleDelete = (id: number) => {
+    const confirmed = window.confirm(
+      "Are you sure you want to delete this application? This cannot be undone."
+    );
+    if (!confirmed) return;
+    deleteApplication(id);
+  };
+
+  const addApplication = async (data: Partial<Application>) => {
+    const res = await axios.post<Application>(API_URL, data);
+    setApplications(prev => [res.data, ...prev]);
+  };
+
+  const updateApplication = async (id: number, updates: Partial<Application>) => {
+    const res = await axios.patch<Application>(`${API_URL}${id}/`, updates);
+    setApplications(prev =>
+      prev.map(app => (app.id === id ? res.data : app))
+    );
+  };
+
+  const deleteApplication = async (id: number) => {
+    if (!confirm("Delete this application?")) return;
+    await axios.delete(`${API_URL}${id}/`);
+    setApplications(prev => prev.filter(app => app.id !== id));
+  };
 
   useEffect(() => {
     const fetchApplications = async () => {
@@ -91,7 +117,6 @@ export default function ApplicationList() {
     return `${config.bg} ${config.text}`;
   };
 
-  // Compute stats for dashboard
   const stats = {
     total: applications.length,
     applied: applications.filter(app => app.status === "applied").length,
@@ -148,19 +173,38 @@ export default function ApplicationList() {
   return (
     <div className="min-h-screen bg-[#f8fafc] p-8">
       <div className="max-w-4xl mx-auto">
-        <div className="text-center mb-6">
-          <p className="text-gray-500">
-            Keep track of all your job applications in one place.
-          </p>
-        </div>
-        <div className="mb-6">
+      <div className="text-center mb-6 space-y-4">
+        <p className="text-gray-500">
+          Keep track of all your job applications in one place.
+        </p>
+      </div>
+
+        <div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:space-x-4 space-y-2 sm:space-y-0">
           <input
             type="text"
             placeholder="Search by Company or Role..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full p-3 rounded-xl border border-gray-300 focus:border-blue-500 focus:outline-none mb-4"
+            className="flex-1 p-3 rounded-xl border border-gray-300 focus:border-blue-500 focus:outline-none"
           />
+
+          <button
+            onClick={() =>
+              addApplication({
+                company: "New Company",
+                position: "New Role",
+                status: "applied",
+                applied_date: new Date().toISOString(),
+              })
+            }
+            className="px-4 py-3 !bg-gray-400 text-white rounded-xl hover:bg-gray-600 transition"
+          >
+            + Add Application
+          </button>
+        </div>
+
+
+        <div className="mb-6">
           <div className="flex justify-center space-x-4 text-sm text-gray-600 flex-wrap">
             <span>Total: {stats.total}</span>
             <span>Applied: {stats.applied}</span>
@@ -170,34 +214,6 @@ export default function ApplicationList() {
           </div>
         </div>
 
-        <div className="flex justify-between items-center mb-4">
-          <div className="flex space-x-2 view-toggle">
-            <button
-              onClick={() => setViewMode("cards")}
-              className={`px-3 py-1 rounded-lg text-sm font-medium transition-all duration-200 border
-                ${
-                  viewMode === "cards"
-                    ? "bg-blue-50 !border-blue-600 text-gray-900 shadow-sm"
-                    : "bg-white border-gray-300 text-gray-600 hover:bg-gray-50 hover:border-gray-400 hover:text-gray-800"
-                }
-              `}
-            >
-              Cards
-            </button>            
-            <button
-              onClick={() => setViewMode("list")}
-              className={`px-3 py-1 rounded-lg text-sm font-medium transition-all duration-200 border
-                ${
-                  viewMode === "list"
-                    ? "bg-blue-50 !border-blue-600 text-gray-900 shadow-sm"
-                    : "bg-white border-gray-300 text-gray-600 hover:bg-gray-50 hover:border-gray-400 hover:text-gray-800"
-                }
-              `}
-            >
-              List
-            </button>
-          </div>
-        </div>
         <div className="mb-6">
           <label className="block text-gray-700 font-medium mb-2">
             Filter by Status:
@@ -220,23 +236,30 @@ export default function ApplicationList() {
           </div>
         </div>
 
-        {/* Main Content: Cards or List View */}
         {displayedApps.length === 0 ? (
-          <div className="bg-white p-10 rounded-2xl shadow text-center text-gray-500">
-            No applications found.
-            <span className="block text-gray-400 text-sm mt-1">
-              Try a different filter, search, or add some jobs through Django admin.
-            </span>
+          <div className="bg-white p-12 rounded-2xl shadow text-center text-gray-500">
+            <div className="flex justify-center mb-4">
+              <Briefcase className="w-10 h-10 text-gray-300" />
+            </div>
+
+            <h3 className="text-lg font-semibold text-gray-700">
+              No applications yet
+            </h3>
+
+            <p className="text-sm text-gray-400 mt-1">
+              Start by adding a job application or adjust your filters.
+            </p>
           </div>
-        ) : viewMode === "cards" ? (
+        ) : 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
             {displayedApps.map((app) => (
-                <Link
-                  key={app.id}
-                  to={`/applications/${app.id}`}
-                  className={`block bg-white rounded-2xl shadow-md p-6 transition hover:shadow-lg
-                    border-l-4 ${getAccentBorder(app.status)}
-                  `}
+               <div
+                  onClick={() => navigate(`/applications/${app.id}`)}
+                  key={app.id}                 
+                    className={`block bg-white rounded-2xl shadow-md p-6 transition
+                      hover:shadow-lg hover:-translate-y-0.5 cursor-pointer
+                      border-l-4 ${getAccentBorder(app.status)}
+                    `}
                 >
                 <div className="flex justify-between items-start mb-4">
                   <div className="flex-1">
@@ -251,60 +274,66 @@ export default function ApplicationList() {
                       <span className="capitalize">
                         {app.company.toLowerCase()}
                       </span>
-                    </p>
+                    </p>                    
                   </div>
+                </div>
+                <hr className="my-3 border-gray-100" />
+
+                {app.applied_date && (
+                  <div className="flex items-center text-xs text-gray-400 mb-3 gap-1">
+                    <Calendar size={14} />
+                    Applied on {formatDate(app.applied_date)}
+                  </div>
+                )}
+
+                <div className="flex items-center justify-between group">
                   <span
-                    className={`px-3 py-1 text-xs font-medium rounded-full ${getStatusClasses(
-                      app.status
-                    )}`}
+                    className={`px-3 py-1 text-xs font-medium rounded-full
+                      transition-all duration-300 ease-in-out
+                      ${getStatusClasses(app.status)}
+                    `}
                   >
                     {app.status.toUpperCase().replace("_", " ")}
                   </span>
+
+                  <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <select
+                      value={app.status}
+                      onClick={(e) => e.stopPropagation()}
+                      onChange={(e) => {
+                        e.stopPropagation();
+                        updateApplication(app.id, { status: e.target.value });
+                      }}
+                      className="px-2 py-1 text-xs rounded border border-gray-300 bg-white"
+                    >
+                      {STATUS_OPTIONS.filter(s => s !== "all").map(status => (
+                        <option key={status} value={status}>
+                          {status.toUpperCase().replace("_", " ")}
+                        </option>
+                      ))}
+                    </select>
+
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleDelete(app.id);
+                      }}
+                      className="
+                        opacity-0 group-hover:opacity-100
+                        text-red-500 hover:text-red-700
+                        p-1 rounded-full hover:bg-red-50
+                        transition-opacity transition-colors
+                      "
+                      aria-label="Delete application"
+                    >
+                      <Trash2 size={16} />
+                    </button>
+                  </div>
                 </div>
-                <hr className="my-3 border-gray-100" />
-                {app.applied_date && (
-                  <p className="text-sm text-gray-400">
-                    Applied on {formatDate(app.applied_date)}
-                  </p>
-                )}
-              </Link>
+              </div>
             ))}
           </div>
-        ) : (
-          // List View
-          <div className="bg-white rounded-2xl shadow-md overflow-hidden">
-            <table className="w-full">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="p-4 text-left font-medium text-gray-700">Position</th>
-                  <th className="p-4 text-left font-medium text-gray-700">Company</th>
-                  <th className="p-4 text-left font-medium text-gray-700">Status</th>
-                  <th className="p-4 text-left font-medium text-gray-700">Date Applied</th>
-                </tr>
-              </thead>
-              <tbody>
-                {displayedApps.map((app) => (
-                  <tr key={app.id} className="border-t hover:bg-gray-50 transition">
-                    <td className="p-4">
-                      <Link to={`/applications/${app.id}`} className="text-blue-600 hover:underline">
-                        {app.position}
-                      </Link>
-                    </td>
-                    <td className="p-4">{app.company}</td>
-                    <td className="p-4">
-                      <span
-                        className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusClasses(app.status)}`}
-                      >
-                        {app.status.toUpperCase().replace("_", " ")}
-                      </span>
-                    </td>
-                    <td className="p-4 text-gray-500">{formatDate(app.applied_date)}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
+        }
 
         {applications.length > 0 && chartData && (
           <div className="max-w-md mx-auto mt-8 p-4 bg-white rounded-2xl shadow-md">
