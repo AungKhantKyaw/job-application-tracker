@@ -13,7 +13,7 @@ import { Briefcase } from "lucide-react";
 
 ChartJS.register(ArcElement, Tooltip, Legend);
 
-const API_URL = "http://127.0.0.1:8001/api/applications/";
+const API_URL = import.meta.env.VITE_API_URL;
 
 const STATUS_CONFIG: Record<
   string,
@@ -39,6 +39,19 @@ const STATUS_OPTIONS = [
   "offered",
   "rejected",
 ] as const;
+
+const getAccentBorder = (status: string) => {
+  switch (status) {
+    case "offered":
+      return "border-l-green-400";
+    case "rejected":
+      return "border-l-red-400";
+    case "applied":
+      return "border-l-blue-300";
+    default:
+      return "border-l-gray-200";
+  }
+};
 
 export default function ApplicationList() {
   const [applications, setApplications] = useState<Application[]>([]);
@@ -133,7 +146,7 @@ export default function ApplicationList() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 p-8">
+    <div className="min-h-screen bg-[#f8fafc] p-8">
       <div className="max-w-4xl mx-auto">
         <div className="text-center mb-6">
           <p className="text-gray-500">
@@ -218,14 +231,16 @@ export default function ApplicationList() {
         ) : viewMode === "cards" ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
             {displayedApps.map((app) => (
-              <Link
-                key={app.id}
-                to={`/applications/${app.id}`}
-                className="block bg-white rounded-2xl shadow-md hover:shadow-lg transition p-6"
-              >
+                <Link
+                  key={app.id}
+                  to={`/applications/${app.id}`}
+                  className={`block bg-white rounded-2xl shadow-md p-6 transition hover:shadow-lg
+                    border-l-4 ${getAccentBorder(app.status)}
+                  `}
+                >
                 <div className="flex justify-between items-start mb-4">
                   <div className="flex-1">
-                    <h2 className="text-xl font-semibold text-gray-800 flex items-start gap-2 mb-1 line-clamp-2">
+                    <h2 className="text-xl font-semibold text-slate-900 flex items-start gap-2 mb-1 line-clamp-2">
                       <Briefcase className="w-5 h-5 text-gray-500 mt-1 shrink-0" />
                       {app.position}
                     </h2>
@@ -246,7 +261,7 @@ export default function ApplicationList() {
                     {app.status.toUpperCase().replace("_", " ")}
                   </span>
                 </div>
-
+                <hr className="my-3 border-gray-100" />
                 {app.applied_date && (
                   <p className="text-sm text-gray-400">
                     Applied on {formatDate(app.applied_date)}
