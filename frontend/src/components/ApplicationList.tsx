@@ -13,7 +13,7 @@ import { Briefcase, Trash2, Calendar } from "lucide-react";
 
 ChartJS.register(ArcElement, Tooltip, Legend);
 
-const API_URL = import.meta.env.VITE_API_URL;
+const API_URL = import.meta.env.VITE_API_URL + 'applications/';
 
 const STATUS_CONFIG: Record<
   string,
@@ -171,7 +171,7 @@ export default function ApplicationList() {
   }
 
   return (
-    <div className="min-h-screen bg-[#f8fafc] p-8">
+    <div className="bg-[#f8fafc] p-8">
       <div className="max-w-4xl mx-auto">
       <div className="text-center mb-6 space-y-4">
         <p className="text-gray-500">

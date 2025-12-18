@@ -3,7 +3,7 @@ import { useParams, Link } from "react-router-dom";
 import axios from "axios";
 import { Application } from "../types/Application";
 
-const API_URL = "http://127.0.0.1:8001/api/applications/";
+const API_URL = import.meta.env.VITE_API_URL + 'applications/';
 
 export default function ApplicationDetail() {
   const { id } = useParams<{ id: string }>();
@@ -34,7 +34,7 @@ export default function ApplicationDetail() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50 p-8">
+      <div className="flex items-center justify-center bg-gray-50 p-8">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
       </div>
     );
@@ -42,7 +42,7 @@ export default function ApplicationDetail() {
 
   if (error || !application) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50 p-8">
+      <div className="flex items-center justify-center bg-gray-50 p-8">
         <div className="bg-white p-10 rounded-2xl shadow text-center text-red-600">
           {error || "Application not found."}
           <Link
@@ -57,7 +57,7 @@ export default function ApplicationDetail() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 p-8">
+    <div className="bg-gray-50 p-8">
       <div className="max-w-3xl mx-auto bg-white rounded-2xl shadow p-8 space-y-6">
         <Link
           to="/"

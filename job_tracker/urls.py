@@ -18,12 +18,21 @@ from django.contrib import admin
 from django.urls import path, include
 from rest_framework import routers
 from applications.api.views import JobApplicationViewSet
+from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
 router = routers.DefaultRouter()
 router.register(r"applications", JobApplicationViewSet, basename="application")
 
 urlpatterns = [
     path("admin/", admin.site.urls),
-    path("api/", include(router.urls)),  # new API endpoint
-    path("", include("applications.urls")),  # keep your existing views
+
+    # API endpoints
+    path("api/", include("applications.api.urls")),  # includes router + register
+
+    # JWT auth
+    path("api/token/", TokenObtainPairView.as_view(), name="token_obtain_pair"),
+    path("api/token/refresh/", TokenRefreshView.as_view(), name="token_refresh"),
+
+    # HTML views
+    path("", include("applications.urls")),
 ]
