@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
-import axios from "axios";
+import api from "../utils/api";
 import { Application } from "../types/Application";
 
 const API_URL = import.meta.env.VITE_API_URL + 'applications/';
@@ -14,7 +14,7 @@ export default function ApplicationDetail() {
   useEffect(() => {
     const fetchApplication = async () => {
       try {
-        const res = await axios.get<Application>(`${API_URL}${id}/`);
+        const res = await api.get<Application>(`${API_URL}${id}/`);
         setApplication(res.data);
       } catch {
         setError("Failed to load application.");
