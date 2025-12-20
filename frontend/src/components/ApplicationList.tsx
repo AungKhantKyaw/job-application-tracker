@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
+import api from "../utils/api";
 import { Application } from "../types/Application";
 import {
   Chart as ChartJS,
@@ -70,12 +70,12 @@ export default function ApplicationList() {
   };
 
   const addApplication = async (data: Partial<Application>) => {
-    const res = await axios.post<Application>(API_URL, data);
+    const res = await api.post<Application>("applications/", data);
     setApplications(prev => [res.data, ...prev]);
   };
 
   const updateApplication = async (id: number, updates: Partial<Application>) => {
-    const res = await axios.patch<Application>(`${API_URL}${id}/`, updates);
+    const res = await api.patch<Application>(`applications/${id}/`, updates);
     setApplications(prev =>
       prev.map(app => (app.id === id ? res.data : app))
     );
@@ -83,7 +83,7 @@ export default function ApplicationList() {
 
   const deleteApplication = async (id: number) => {
     if (!confirm("Delete this application?")) return;
-    await axios.delete(`${API_URL}${id}/`);
+    await api.delete(`applications/${id}/`);
     setApplications(prev => prev.filter(app => app.id !== id));
   };
 
@@ -91,7 +91,7 @@ export default function ApplicationList() {
     const fetchApplications = async () => {
       try {
         setLoading(true);
-        const res = await axios.get<Application[]>(API_URL);
+        const res = await api.get<Application[]>("applications/");
         const sortedApps = res.data.sort((a, b) => 
           new Date(b.applied_date || 0).getTime() - new Date(a.applied_date || 0).getTime()
         );
