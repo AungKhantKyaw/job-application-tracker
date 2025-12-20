@@ -60,6 +60,18 @@ export default function ApplicationList() {
   const [filterStatus, setFilterStatus] = useState<string>("all");
   const [searchQuery, setSearchQuery] = useState<string>("");
   const navigate = useNavigate();
+  const [showForm, setShowForm] = useState(false);
+  const [newApp, setNewApp] = useState({
+    company: "",
+    position: "",
+    status: "applied",
+    location: "",
+    salary_range: "",
+    job_url: "",
+    description: "",
+    applied_date: new Date().toISOString().slice(0, 10),
+  });
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
   const handleDelete = (id: number) => {
     const confirmed = window.confirm(
@@ -69,9 +81,26 @@ export default function ApplicationList() {
     deleteApplication(id);
   };
 
-  const addApplication = async (data: Partial<Application>) => {
-    const res = await api.post<Application>("applications/", data);
-    setApplications(prev => [res.data, ...prev]);
+  const addApplication = async () => {
+    try {
+      const res = await api.post<Application>("applications/", newApp);
+      setApplications(prev => [res.data, ...prev]);
+      setShowForm(false);
+      setNewApp({
+        company: "",
+        position: "",
+        status: "applied",
+        location: "",
+        salary_range: "",
+        job_url: "",
+        description: "",
+        applied_date: new Date().toISOString().slice(0, 10),
+      });
+      setSuccessMessage("Application created successfully!");
+      setTimeout(() => setSuccessMessage(null), 3000);
+    } catch {
+      alert("Failed to add application");
+    }
   };
 
   const updateApplication = async (id: number, updates: Partial<Application>) => {
@@ -173,6 +202,96 @@ export default function ApplicationList() {
   return (
     <div className="bg-[#f8fafc] p-8">
       <div className="max-w-4xl mx-auto">
+      {successMessage && (
+        <div className="mb-4 rounded-lg bg-green-100 border border-green-300 text-green-800 px-4 py-3">
+          {successMessage}
+        </div>
+      )}
+      {showForm && (
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+          <div className="bg-white p-6 rounded-2xl w-full max-w-md shadow-lg">
+            <h2 className="text-xl font-semibold mb-4">Add Application</h2>
+
+            <input
+              className="w-full mb-3 p-2 border rounded"
+              placeholder="Company"
+              value={newApp.company}
+              onChange={e => setNewApp({ ...newApp, company: e.target.value })}
+            />
+
+            <input
+              className="w-full mb-3 p-2 border rounded"
+              placeholder="Position"
+              value={newApp.position}
+              onChange={e => setNewApp({ ...newApp, position: e.target.value })}
+            />
+
+            <input
+              className="w-full mb-3 p-2 border rounded"
+              placeholder="Location"
+              value={newApp.location}
+              onChange={e => setNewApp({ ...newApp, location: e.target.value })}
+            />
+
+            <input
+              className="w-full mb-3 p-2 border rounded"
+              placeholder="Salary Range"
+              value={newApp.salary_range}
+              onChange={e => setNewApp({ ...newApp, salary_range: e.target.value })}
+            />
+
+            <input
+              className="w-full mb-3 p-2 border rounded"
+              placeholder="Job URL"
+              value={newApp.job_url}
+              onChange={e => setNewApp({ ...newApp, job_url: e.target.value })}
+            />
+
+            <textarea
+              className="w-full mb-3 p-2 border rounded resize-none"
+              placeholder="Description"
+              value={newApp.description}
+              onChange={e => setNewApp({ ...newApp, description: e.target.value })}
+              rows={4}
+            />
+
+            <select
+              className="w-full mb-3 p-2 border rounded"
+              value={newApp.status}
+              onChange={e => setNewApp({ ...newApp, status: e.target.value })}
+            >
+              {STATUS_OPTIONS.filter(s => s !== "all").map(s => (
+                <option key={s} value={s}>
+                  {s.replace("_", " ").toUpperCase()}
+                </option>
+              ))}
+            </select>
+
+            <input
+              type="date"
+              className="w-full mb-4 p-2 border rounded"
+              value={newApp.applied_date}
+              onChange={e => setNewApp({ ...newApp, applied_date: e.target.value })}
+            />
+
+            <div className="flex justify-end gap-2">
+              <button
+                onClick={() => setShowForm(false)}
+                className="px-4 py-2 rounded bg-gray-200"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={addApplication}
+                className="px-4 py-2 rounded !bg-blue-600 text-white"
+              >
+                Save
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="text-center mb-6 space-y-4">
         <p className="text-gray-500">
           Keep track of all your job applications in one place.
@@ -188,19 +307,12 @@ export default function ApplicationList() {
             className="flex-1 p-3 rounded-xl border border-gray-300 focus:border-blue-500 focus:outline-none"
           />
 
-          <button
-            onClick={() =>
-              addApplication({
-                company: "New Company",
-                position: "New Role",
-                status: "applied",
-                applied_date: new Date().toISOString(),
-              })
-            }
-            className="px-4 py-3 !bg-gray-400 text-white rounded-xl hover:bg-gray-600 transition"
-          >
-            + Add Application
-          </button>
+        <button
+          onClick={() => setShowForm(true)}
+          className="px-4 py-3 !bg-gray-600 text-white rounded-xl hover:bg-blue-700 transition"
+        >
+          + Add Application
+        </button>
         </div>
 
 

@@ -5,7 +5,7 @@ from applications.models import JobApplication
 class JobApplicationSerializer(serializers.ModelSerializer):
     class Meta:
         model = JobApplication
-        fields = "__all__"
+        exclude = ["user"]        
 
 
 class UserRegisterSerializer(serializers.ModelSerializer):
