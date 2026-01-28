@@ -11,11 +11,35 @@ export default function ApplicationDetail() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  const [isEditing, setIsEditing] = useState(false);
+  const [formData, setFormData] = useState<Partial<Application>>({});
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
+
+  const handleSave = async () => {
+    if (!application) return;
+
+    try {
+      const res = await api.patch<Application>(
+        `applications/${application.id}/`,
+        formData
+      );
+
+      setApplication(res.data);
+      setIsEditing(false);
+      setSuccessMessage("Application updated successfully!");
+
+      setTimeout(() => setSuccessMessage(null), 3000);
+    } catch {
+      alert("Failed to update application");
+    }
+  };
+
   useEffect(() => {
     const fetchApplication = async () => {
       try {
         const res = await api.get<Application>(`${API_URL}${id}/`);
         setApplication(res.data);
+        setFormData(res.data);
       } catch {
         setError("Failed to load application.");
       } finally {
@@ -66,65 +90,235 @@ export default function ApplicationDetail() {
           &larr; Back to list
         </Link>
 
-        <h1 className="text-2xl font-bold text-gray-800">{application.position}</h1>
-        <p className="text-gray-500">{application.company}</p>
+        {successMessage && (
+          <div className="rounded-lg bg-green-100 border border-green-300 text-green-800 px-4 py-3">
+            {successMessage}
+          </div>
+        )}
 
-        <div className="flex space-x-2 items-center">
-          <span className="px-3 py-1 text-sm font-medium rounded-full bg-blue-100 text-blue-600">
-            {application.status}
-          </span>
-          {application.location && (
-            <span className="px-2 py-1 text-sm rounded bg-gray-100 text-gray-600">
-              {application.location}
-            </span>
+        <div className="flex justify-end gap-2">
+          {!isEditing ? (
+            <button
+              onClick={() => setIsEditing(true)}
+              className="px-4 py-2 rounded !bg-blue-600 text-white hover:!bg-blue-700"
+            >
+              Edit
+            </button>
+          ) : (
+            <>
+              <button
+                onClick={() => {
+                  setFormData(application);
+                  setIsEditing(false);
+                }}
+                className="px-4 py-2 rounded !bg-gray-200"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleSave}
+                className="px-4 py-2 rounded !bg-green-600 text-white hover:!bg-green-700"
+              >
+                Save
+              </button>
+            </>
           )}
         </div>
 
-        <div className="space-y-2 text-gray-700 text-sm">
-          {application.salary_range && (
-            <p>
-              <span className="font-medium">Salary:</span> {application.salary_range}
-            </p>
+
+        {isEditing ? (
+          <input
+            className="w-full text-2xl font-bold border rounded p-2"
+            value={formData.position || ""}
+            onChange={e =>
+              setFormData({ ...formData, position: e.target.value })
+            }
+          />
+        ) : (
+          <h1 className="text-2xl font-bold text-gray-800">
+            {application.position}
+          </h1>
+        )}
+
+        {isEditing ? (
+          <input
+            className="w-full border rounded p-2"
+            value={formData.company || ""}
+            onChange={e =>
+              setFormData({ ...formData, company: e.target.value })
+            }
+          />
+        ) : (
+          <p className="text-gray-500">{application.company}</p>
+        )}
+
+        <div className="flex space-x-2 items-center">
+          {isEditing ? (
+            <select
+              className="border rounded px-2 py-1"
+              value={formData.status}
+              onChange={e =>
+                setFormData({ ...formData, status: e.target.value })
+              }
+            >
+              {[
+                "applied",
+                "phone_screen",
+                "interview",
+                "coding_test",
+                "second_interview",
+                "offered",
+                "rejected",
+              ].map(s => (
+                <option key={s} value={s}>
+                  {s.replace("_", " ").toUpperCase()}
+                </option>
+              ))}
+            </select>
+          ) : (
+            <span className="px-3 py-1 text-sm font-medium rounded-full bg-blue-100 text-blue-600">
+              {application.status}
+            </span>
           )}
-          {application.job_url && (
-            <p>
-              <span className="font-medium">Job URL:</span>{" "}
-              <a
-                href={application.job_url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-blue-600 hover:underline"
-              >
-                {application.job_url}
-              </a>
-            </p>
-          )}
-          {application.description && (
-            <p>
-              <span className="font-medium">Description:</span> {application.description}
-            </p>
-          )}
-          {application.notes && (
-            <p>
-              <span className="font-medium">Notes:</span> {application.notes}
-            </p>
-          )}
-          <p>
+
+          <div className="flex items-center gap-2">
+            {!isEditing ? (
+              application.location && (
+                <span className="px-2 py-1 text-sm rounded bg-gray-100 text-gray-600">
+                  {application.location}
+                </span>
+              )
+            ) : (
+              <input
+                type="text"
+                value={formData.location || ""}
+                onChange={(e) =>
+                  setFormData({ ...formData, location: e.target.value })
+                }
+                placeholder="Location"
+                className="px-2 py-1 text-sm border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            )}
+          </div>
+        </div>
+
+        <div className="space-y-3 text-gray-700 text-sm">
+          <div>
+            <span className="font-medium">Salary:</span>{" "}
+            {!isEditing ? (
+              application.salary_range || "—"
+            ) : (
+              <input
+                value={formData.salary_range || ""}
+                onChange={(e) =>
+                  setFormData({ ...formData, salary_range: e.target.value })
+                }
+                className="ml-2 px-2 py-1 border rounded text-sm"
+                placeholder="Salary range"
+              />
+            )}
+          </div>
+          
+          <div>
+            <span className="font-medium">Job URL:</span>{" "}
+            {!isEditing ? (
+              application.job_url ? (
+                <a
+                  href={application.job_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-blue-600 hover:underline ml-1"
+                >
+                  {application.job_url}
+                </a>
+              ) : (
+                "—"
+              )
+            ) : (
+              <input
+                value={formData.job_url || ""}
+                onChange={(e) =>
+                  setFormData({ ...formData, job_url: e.target.value })
+                }
+                className="ml-2 px-2 py-1 border rounded text-sm w-full"
+                placeholder="https://job-link"
+              />
+            )}
+          </div>
+
+          <div>
+            <span className="font-medium block">Description:</span>
+            {!isEditing ? (
+              <p className="mt-1">{application.description || "—"}</p>
+            ) : (
+              <textarea
+                value={formData.description || ""}
+                onChange={(e) =>
+                  setFormData({ ...formData, description: e.target.value })
+                }
+                rows={3}
+                className="mt-1 w-full px-2 py-1 border rounded text-sm"
+              />
+            )}
+          </div>
+
+          <div>
+            <span className="font-medium block">Notes:</span>
+            {!isEditing ? (
+              <p className="mt-1">{application.notes || "—"}</p>
+            ) : (
+              <textarea
+                value={formData.notes || ""}
+                onChange={(e) =>
+                  setFormData({ ...formData, notes: e.target.value })
+                }
+                rows={3}
+                className="mt-1 w-full px-2 py-1 border rounded text-sm"
+              />
+            )}
+          </div>
+
+          <div>
             <span className="font-medium">Applied on:</span>{" "}
-            {formatDate(application.applied_date)}
-          </p>
-          <p>
+            {!isEditing ? (
+              formatDate(application.applied_date)
+            ) : (
+              <input
+                type="date"
+                value={formData.applied_date || ""}
+                onChange={(e) =>
+                  setFormData({ ...formData, applied_date: e.target.value })
+                }
+                className="ml-2 px-2 py-1 border rounded text-sm"
+              />
+            )}
+          </div>
+
+          <div>
             <span className="font-medium">Follow-up date:</span>{" "}
-            {formatDate(application.follow_up_date)}
-          </p>
-          <p>
+            {!isEditing ? (
+              formatDate(application.follow_up_date)
+            ) : (
+              <input
+                type="date"
+                value={formData.follow_up_date || ""}
+                onChange={(e) =>
+                  setFormData({ ...formData, follow_up_date: e.target.value })
+                }
+                className="ml-2 px-2 py-1 border rounded text-sm"
+              />
+            )}
+          </div>
+
+          <div>
             <span className="font-medium">Created at:</span>{" "}
             {formatDate(application.created_at)}
-          </p>
-          <p>
+          </div>
+
+          <div>
             <span className="font-medium">Updated at:</span>{" "}
             {formatDate(application.updated_at)}
-          </p>
+          </div>
         </div>
       </div>
     </div>
