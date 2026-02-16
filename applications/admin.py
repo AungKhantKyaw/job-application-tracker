@@ -1,8 +1,9 @@
 from django.contrib import admin
+from unfold.admin import ModelAdmin
 from .models import JobApplication
 
 @admin.register(JobApplication)
-class JobApplicationAdmin(admin.ModelAdmin):
+class JobApplicationAdmin(ModelAdmin):
     list_display = ['company', 'position', 'status', 'applied_date', 'location']
     list_filter = ['status', 'applied_date']
     search_fields = ['company', 'position', 'location']
