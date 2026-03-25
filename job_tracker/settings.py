@@ -111,6 +111,12 @@ SIMPLE_JWT = {
     "AUTH_HEADER_TYPES": ("Bearer",),
 }
 
+UNFOLD = {
+    "SITE_TITLE": "Job Tracker Admin",
+    "SITE_HEADER": "Job Tracker Admin",
+    "SITE_SUBHEADER": "Welcome to the Job TrackerAdmin",
+}
+
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 
