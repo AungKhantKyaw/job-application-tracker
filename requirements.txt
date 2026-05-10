@@ -6,3 +6,4 @@ djangorestframework==3.16.1
 sqlparse==0.5.3
 djangorestframework-simplejwt
 django-unfold
+psycopg2-binary==2.9.10
