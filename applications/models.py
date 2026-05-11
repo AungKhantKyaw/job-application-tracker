@@ -1,4 +1,3 @@
-
 from django.db import models
 from django.utils import timezone
 from django.contrib.auth.models import User
@@ -39,3 +38,46 @@ class JobApplication(models.Model):
     
     def __str__(self):
         return f"{self.position} at {self.company}"
+    
+    def save(self, *args, **kwargs):
+        # Check if this is a new instance or an existing one being updated
+        if self.pk:
+            old_status = JobApplication.objects.filter(pk=self.pk).values_list('status', flat=True).first()
+            # If status changed, we'll create a history entry after the save
+            status_changed = old_status is not None and old_status != self.status
+        else:
+            # New instance: we'll create an initial history entry after save
+            status_changed = True
+        
+        super().save(*args, **kwargs)
+        
+        # Create history entry if status changed (or on creation)
+        if status_changed:
+            StatusHistory.objects.create(
+                job_application=self,
+                status=self.status,
+                notes=f"Status changed to {self.get_status_display()}"
+            )
+    
+    @property
+    def status_history(self):
+        """Return all status history entries for this application, ordered oldest first."""
+        return self.history_entries.all().order_by('changed_at')
+
+
+class StatusHistory(models.Model):
+    job_application = models.ForeignKey(
+        JobApplication,
+        on_delete=models.CASCADE,
+        related_name='history_entries'
+    )
+    status = models.CharField(max_length=20, choices=JobApplication.STATUS_CHOICES)
+    changed_at = models.DateTimeField(default=timezone.now)
+    notes = models.TextField(blank=True, help_text="Optional note about this status change")
+    
+    class Meta:
+        ordering = ['changed_at']
+        verbose_name_plural = "Status histories"
+    
+    def __str__(self):
+        return f"{self.job_application} - {self.get_status_display()} on {self.changed_at.date()}"

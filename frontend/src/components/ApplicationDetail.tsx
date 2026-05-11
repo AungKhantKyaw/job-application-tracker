@@ -321,6 +321,51 @@ export default function ApplicationDetail() {
           </div>
         </div>
       </div>
+
+      <div className="mt-8 border-t pt-6">
+        <h2 className="text-xl font-semibold text-gray-800 mb-6">
+          Status Timeline
+        </h2>
+
+        {application.status_history?.length ? (
+          <div className="relative pl-6">
+            {/* vertical line */}
+            <div className="absolute left-2 top-0 bottom-0 w-px bg-gray-300" />
+
+            <div className="space-y-6">
+              {application.status_history.map((entry, index) => (
+                <div key={entry.id} className="relative">
+                  {/* dot */}
+                  <div className="absolute -left-[9px] top-1.5 w-4 h-4 rounded-full bg-blue-500 border-2 border-white shadow" />
+
+                  <div className="bg-white border rounded-lg p-4 shadow-sm hover:shadow-md transition">
+                    <div className="flex items-center justify-between">
+                      <span className="px-2 py-0.5 text-xs font-semibold rounded-full bg-blue-100 text-blue-700">
+                        {entry.status.replace(/_/g, " ").toUpperCase()}
+                      </span>
+
+                      <span className="text-xs text-gray-500">
+                        {formatDate(entry.changed_at)}
+                      </span>
+                    </div>
+
+                    {entry.notes && (
+                      <p className="text-sm text-gray-600 mt-2">
+                        {entry.notes}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        ) : (
+          <p className="text-gray-500 text-sm">
+            No status updates yet.
+          </p>
+        )}
+      </div>
+
     </div>
   );
 }
