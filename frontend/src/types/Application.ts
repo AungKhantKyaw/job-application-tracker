@@ -1,3 +1,10 @@
+export interface StatusHistoryEntry {
+  id: number;
+  status: string;
+  changed_at: string;
+  notes: string;
+}
+
 export interface Application {
   id: number;
   position: string;
@@ -12,4 +19,5 @@ export interface Application {
   follow_up_date?: string;
   created_at?: string;
   updated_at?: string;
+  status_history: StatusHistoryEntry[];
 }

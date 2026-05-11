@@ -30,7 +30,7 @@ export default function Login() {
 
   return (
     <div className="max-w-md mx-auto mt-10 bg-white p-6 rounded shadow">
-        <h2 className="text-2xl font-bold mb-4">Login</h2>
+        <h2 className="text-2xl font-bold mb-4 text-gray-900">Login</h2>
 
         {error && <p className="text-red-500 mb-2">{error}</p>}
 
@@ -40,7 +40,7 @@ export default function Login() {
             placeholder="Username"
             value={username}
             onChange={(e) => setUsername(e.target.value)}
-            className="w-full border px-3 py-2 rounded"
+            className="w-full border border-gray-300 rounded px-3 py-2 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             required
           />
 
@@ -49,7 +49,7 @@ export default function Login() {
             placeholder="Password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            className="w-full border px-3 py-2 rounded"
+            className="w-full border border-gray-300 rounded px-3 py-2 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             required
           />
 

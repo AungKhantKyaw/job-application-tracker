@@ -1,11 +1,19 @@
 from django.contrib.auth.models import User
 from rest_framework import serializers
-from applications.models import JobApplication
+from applications.models import JobApplication, StatusHistory  # import StatusHistory
+
+class StatusHistorySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = StatusHistory
+        fields = ['id', 'status', 'changed_at', 'notes']
+
 
 class JobApplicationSerializer(serializers.ModelSerializer):
+    status_history = StatusHistorySerializer(many=True, read_only=True, source='history_entries')
+
     class Meta:
         model = JobApplication
-        exclude = ["user"]        
+        exclude = ["user"]
 
 
 class UserRegisterSerializer(serializers.ModelSerializer):
