@@ -33,6 +33,6 @@ urlpatterns = [
     path("api/token/", TokenObtainPairView.as_view(), name="token_obtain_pair"),
     path("api/token/refresh/", TokenRefreshView.as_view(), name="token_refresh"),
 
-    # HTML views
-    path("", include("applications.urls")),
+    # HTML views (disabled for security in favor of React SPA)
+    # path("", include("applications.urls")),
 ]

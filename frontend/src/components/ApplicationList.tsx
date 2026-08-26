@@ -9,7 +9,7 @@ import {
   Legend,
 } from "chart.js";
 import { Pie } from "react-chartjs-2";
-import { Briefcase, Trash2, Calendar } from "lucide-react";
+import { Briefcase, Trash2, Calendar, LayoutGrid, Kanban } from "lucide-react";
 
 ChartJS.register(ArcElement, Tooltip, Legend);
 
@@ -38,6 +38,44 @@ const STATUS_OPTIONS = [
   "second_interview",
   "offered",
   "rejected",
+] as const;
+
+const KANBAN_COLUMNS = [
+  {
+    id: "applied",
+    title: "Applied",
+    statuses: ["applied"],
+    defaultStatus: "applied",
+    badgeColor: "bg-blue-500",
+  },
+  {
+    id: "screening",
+    title: "Screening",
+    statuses: ["phone_screen", "coding_test"],
+    defaultStatus: "phone_screen",
+    badgeColor: "bg-amber-500",
+  },
+  {
+    id: "interviews",
+    title: "Interviews",
+    statuses: ["interview", "second_interview"],
+    defaultStatus: "interview",
+    badgeColor: "bg-emerald-500",
+  },
+  {
+    id: "offered",
+    title: "Offered",
+    statuses: ["offered"],
+    defaultStatus: "offered",
+    badgeColor: "bg-green-600",
+  },
+  {
+    id: "closed",
+    title: "Closed",
+    statuses: ["rejected", "withdrawn"],
+    defaultStatus: "rejected",
+    badgeColor: "bg-red-500",
+  },
 ] as const;
 
 const getAccentBorder = (status: string) => {
@@ -72,6 +110,10 @@ export default function ApplicationList() {
     applied_date: new Date().toISOString().slice(0, 10),
   });
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  
+  // Kanban board & View mode state
+  const [viewMode, setViewMode] = useState<"list" | "board">("list");
+  const [draggedOverColumn, setDraggedOverColumn] = useState<string | null>(null);
 
   const handleDelete = (id: number) => {
     const confirmed = window.confirm(
@@ -111,9 +153,45 @@ export default function ApplicationList() {
   };
 
   const deleteApplication = async (id: number) => {
-    if (!confirm("Delete this application?")) return;
-    await api.delete(`applications/${id}/`);
-    setApplications(prev => prev.filter(app => app.id !== id));
+    try {
+      await api.delete(`applications/${id}/`);
+      setApplications(prev => prev.filter(app => app.id !== id));
+      setSuccessMessage("Application deleted successfully.");
+      setTimeout(() => setSuccessMessage(null), 3000);
+    } catch {
+      alert("Failed to delete application");
+    }
+  };
+
+  // HTML5 Drag and Drop handlers
+  const handleDragStart = (e: React.DragEvent, id: number) => {
+    e.dataTransfer.setData("applicationId", id.toString());
+  };
+
+  const handleDragOver = (e: React.DragEvent, columnId: string) => {
+    e.preventDefault();
+    setDraggedOverColumn(columnId);
+  };
+
+  const handleDragLeave = () => {
+    setDraggedOverColumn(null);
+  };
+
+  const handleDrop = async (e: React.DragEvent, columnId: string) => {
+    e.preventDefault();
+    setDraggedOverColumn(null);
+    const idStr = e.dataTransfer.getData("applicationId");
+    if (!idStr) return;
+    const id = parseInt(idStr);
+
+    const column = KANBAN_COLUMNS.find(col => col.id === columnId);
+    if (column) {
+      try {
+        await updateApplication(id, { status: column.defaultStatus });
+      } catch {
+        alert("Failed to update status on drop");
+      }
+    }
   };
 
   useEffect(() => {
@@ -158,7 +236,7 @@ export default function ApplicationList() {
 
 
   const filteredApplications =
-    filterStatus === "all"
+    viewMode === "board" || filterStatus === "all"
       ? applications
       : applications.filter((app) => app.status === filterStatus);
 
@@ -201,7 +279,7 @@ export default function ApplicationList() {
 
   return (
     <div className="bg-[#f8fafc] p-8">
-      <div className="max-w-4xl mx-auto">
+      <div className={`${viewMode === "board" ? "max-w-7xl" : "max-w-4xl"} mx-auto transition-all duration-300`}>
       {successMessage && (
         <div className="mb-4 rounded-lg bg-green-100 border border-green-300 text-green-800 px-4 py-3">
           {successMessage}
@@ -307,12 +385,37 @@ export default function ApplicationList() {
             className="flex-1 p-3 rounded-xl border border-gray-300 focus:border-blue-500 focus:outline-none"
           />
 
-        <button
-          onClick={() => setShowForm(true)}
-          className="px-4 py-3 !bg-gray-600 text-white rounded-xl hover:bg-blue-700 transition"
-        >
-          + Add Application
-        </button>
+          <div className="flex bg-gray-100 rounded-xl p-1 shrink-0">
+            <button
+              onClick={() => setViewMode("list")}
+              className={`flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-lg transition-colors cursor-pointer ${
+                viewMode === "list"
+                  ? "bg-white text-gray-900 shadow-sm"
+                  : "text-gray-500 hover:text-gray-900"
+              }`}
+            >
+              <LayoutGrid size={15} />
+              List
+            </button>
+            <button
+              onClick={() => setViewMode("board")}
+              className={`flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-lg transition-colors cursor-pointer ${
+                viewMode === "board"
+                  ? "bg-white text-gray-900 shadow-sm"
+                  : "text-gray-500 hover:text-gray-900"
+              }`}
+            >
+              <Kanban size={15} />
+              Board
+            </button>
+          </div>
+
+          <button
+            onClick={() => setShowForm(true)}
+            className="px-4 py-3 !bg-gray-600 text-white rounded-xl hover:bg-blue-700 transition shrink-0"
+          >
+            + Add Application
+          </button>
         </div>
 
 
@@ -326,29 +429,31 @@ export default function ApplicationList() {
           </div>
         </div>
 
-        <div className="mb-6">
-          <label className="block text-gray-700 font-medium mb-2">
-            Filter by Status:
-          </label>
-          <div className="flex justify-center space-x-2 flex-wrap">
-            {STATUS_OPTIONS.map((status) => (
-              <button
-                key={status}
-                onClick={() => setFilterStatus(status)}
-                className={`px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 border
-                  ${
-                    filterStatus === status
-                      ? "bg-blue-50 !border-blue-600 text-black-700 shadow-sm"
-                      : "bg-white border-gray-300 text-gray-600 hover:bg-gray-50 hover:border-gray-400 hover:text-gray-800"
-                  }`}
-              >
-                {status.toUpperCase().replace("_", " ")}
-              </button>
-            ))}
+        {viewMode === "list" && (
+          <div className="mb-6">
+            <label className="block text-gray-700 font-medium mb-2">
+              Filter by Status:
+            </label>
+            <div className="flex justify-center space-x-2 flex-wrap">
+              {STATUS_OPTIONS.map((status) => (
+                <button
+                  key={status}
+                  onClick={() => setFilterStatus(status)}
+                  className={`px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 border
+                    ${
+                      filterStatus === status
+                        ? "bg-blue-50 !border-blue-600 text-black-700 shadow-sm"
+                        : "bg-white border-gray-300 text-gray-600 hover:bg-gray-50 hover:border-gray-400 hover:text-gray-800"
+                    }`}
+                >
+                  {status.toUpperCase().replace("_", " ")}
+                </button>
+              ))}
+            </div>
           </div>
-        </div>
+        )}
 
-        {displayedApps.length === 0 ? (
+        {applications.length === 0 ? (
           <div className="bg-white p-12 rounded-2xl shadow text-center text-gray-500">
             <div className="flex justify-center mb-4">
               <Briefcase className="w-10 h-10 text-gray-300" />
@@ -359,10 +464,93 @@ export default function ApplicationList() {
             </h3>
 
             <p className="text-sm text-gray-400 mt-1">
-              Start by adding a job application or adjust your filters.
+              Start by adding a job application.
             </p>
           </div>
-        ) : 
+        ) : viewMode === "board" ? (
+          <div className="flex gap-4 overflow-x-auto pb-4 scrollbar-thin select-none">
+            {KANBAN_COLUMNS.map((col) => {
+              const columnApps = displayedApps.filter(app => col.statuses.includes(app.status));
+              return (
+                <div
+                  key={col.id}
+                  onDragOver={(e) => handleDragOver(e, col.id)}
+                  onDragLeave={handleDragLeave}
+                  onDrop={(e) => handleDrop(e, col.id)}
+                  className={`w-72 min-w-[18rem] bg-slate-50/80 rounded-2xl flex flex-col p-4 h-[calc(100vh-260px)] min-h-[400px] transition-all duration-200 border-2 ${
+                    draggedOverColumn === col.id ? "border-blue-400 bg-blue-50/40 shadow-sm" : "border-slate-200/60"
+                  }`}
+                >
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="font-semibold text-slate-800 flex items-center gap-2">
+                      <span className={`w-2.5 h-2.5 rounded-full ${col.badgeColor}`} />
+                      {col.title}
+                    </h3>
+                    <span className="text-xs font-semibold px-2 py-0.5 bg-slate-200/60 rounded-full text-slate-600">
+                      {columnApps.length}
+                    </span>
+                  </div>
+
+                  <div className="flex-1 overflow-y-auto space-y-3 pr-1">
+                    {columnApps.length === 0 ? (
+                      <div className="h-24 border-2 border-dashed border-slate-200 rounded-xl flex items-center justify-center text-xs text-slate-400">
+                        Drag here
+                      </div>
+                    ) : (
+                      columnApps.map((app) => (
+                        <div
+                          key={app.id}
+                          draggable
+                          onDragStart={(e) => handleDragStart(e, app.id)}
+                          onClick={() => navigate(`/applications/${app.id}`)}
+                          className="bg-white rounded-xl p-4 shadow-sm hover:shadow-md cursor-pointer border border-slate-100 hover:border-slate-200 transition duration-150 relative group"
+                        >
+                          <div className="flex justify-between items-start">
+                            <h4 className="font-semibold text-slate-800 text-sm line-clamp-1 flex-1">
+                              {app.position}
+                            </h4>
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleDelete(app.id);
+                              }}
+                              className="opacity-0 group-hover:opacity-100 text-slate-400 hover:text-red-500 p-0.5 rounded transition-opacity"
+                              aria-label="Delete"
+                            >
+                              <Trash2 size={13} />
+                            </button>
+                          </div>
+                          <p className="text-xs text-slate-500 mt-1 truncate">
+                            {app.company}
+                          </p>
+                          
+                          {app.location && (
+                            <p className="text-[10px] text-slate-500 mt-2 truncate bg-slate-100 py-0.5 px-1.5 rounded w-max">
+                              {app.location}
+                            </p>
+                          )}
+
+                          <div className="flex items-center justify-between mt-3 pt-2 border-t border-slate-50">
+                            <span className="text-[10px] text-slate-400">
+                              {app.applied_date ? formatDate(app.applied_date) : ""}
+                            </span>
+                            
+                            {/* Subtle sub-status indicator for grouped columns */}
+                            {["screening", "interviews", "closed"].includes(col.id) && (
+                              <span className="text-[9px] uppercase tracking-wider font-semibold text-slate-400 bg-slate-100 px-1 rounded shrink-0">
+                                {app.status.replace("_", " ")}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
             {displayedApps.map((app) => (
                <div
@@ -445,7 +633,7 @@ export default function ApplicationList() {
               </div>
             ))}
           </div>
-        }
+        )}
 
         {applications.length > 0 && chartData && (
           <div className="max-w-md mx-auto mt-8 p-4 bg-white rounded-2xl shadow-md">
