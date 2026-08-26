@@ -1,0 +1,213 @@
+{% extends "admin/base.html" %}
+{% load unfold %}
+
+{% block content %}
+<div class="px-4 py-6">
+  <!-- Header section -->
+  <div class="flex flex-col md:flex-row md:items-center justify-between pb-6 border-b border-slate-200">
+    <div>
+      <h1 class="text-2xl font-bold text-slate-800">Job Applications Kanban Board</h1>
+      <p class="text-slate-500 text-sm mt-1">Drag and drop cards to update progress status</p>
+    </div>
+    <div class="mt-4 md:mt-0 flex gap-2">
+      {% component "unfold/components/button.html" with href="../" variant="ghost" size="sm" %}
+        <span class="flex items-center gap-1">
+          &larr; Back to List View
+        </span>
+      {% endcomponent %}
+    </div>
+  </div>
+
+  <!-- Search bar -->
+  <div class="my-6">
+    <form method="GET" class="flex gap-2 max-w-md bg-white p-1 rounded-xl border border-slate-200">
+      <input 
+        type="text" 
+        name="q" 
+        value="{{ search_query }}" 
+        placeholder="Search by company, role, or location..." 
+        class="flex-1 px-3 py-2 text-sm border-0 focus:outline-none focus:ring-0 text-slate-800 placeholder-slate-400"
+      />
+      <button 
+        type="submit" 
+        class="bg-slate-700 hover:bg-slate-800 text-white rounded-lg px-4 py-1.5 text-sm font-medium transition cursor-pointer"
+      >
+        Search
+      </button>
+      {% if search_query %}
+        <a 
+          href="." 
+          class="border border-slate-200 text-slate-500 hover:text-slate-700 rounded-lg px-3 py-1.5 text-sm font-medium transition flex items-center justify-center bg-slate-50"
+        >
+          Clear
+        </a>
+      {% endif %}
+    </form>
+  </div>
+
+  <!-- CSRF Token hidden field -->
+  {% csrf_token %}
+
+  <!-- Board Columns container -->
+  <div class="flex gap-4 overflow-x-auto pb-6 scrollbar-thin select-none" style="min-height: 600px;">
+    {% for col in columns %}
+      <div 
+        class="kanban-column w-72 min-w-[18rem] bg-slate-50 border border-slate-200/60 rounded-2xl flex flex-col p-4 transition-all duration-200"
+        style="height: calc(100vh - 280px); min-height: 400px;"
+        data-column-id="{{ col.id }}"
+        ondragover="allowDrop(event)"
+        ondragleave="dragLeave(event)"
+        ondrop="drop(event, '{{ col.id }}')"
+      >
+        <!-- Column Header -->
+        <div class="flex items-center justify-between mb-4">
+          <h3 class="font-semibold text-slate-700 flex items-center gap-2 text-sm">
+            <span class="w-2.5 h-2.5 rounded-full {{ col.badge_color }}"></span>
+            {{ col.title }}
+          </h3>
+          <span class="text-xs font-semibold px-2 py-0.5 bg-slate-200 text-slate-600 rounded-full">
+            {{ col.apps|length }}
+          </span>
+        </div>
+
+        <!-- Cards list -->
+        <div class="flex-grow space-y-3 overflow-y-auto pr-1">
+          {% if not col.apps %}
+            <div class="h-20 border-2 border-dashed border-slate-200/60 rounded-xl flex items-center justify-center text-xs text-slate-400">
+              Drag here
+            </div>
+          {% else %}
+            {% for app in col.apps %}
+              <div 
+                class="kanban-card bg-white rounded-xl p-4 shadow-sm hover:shadow-md cursor-grab border border-slate-100 hover:border-slate-200 transition duration-150 relative group"
+                draggable="true"
+                id="app-{{ app.id }}"
+                data-app-id="{{ app.id }}"
+                ondragstart="drag(event)"
+              >
+                <!-- Title & Position -->
+                <div class="flex justify-between items-start">
+                  <h4 class="font-semibold text-slate-800 text-xs line-clamp-1 flex-grow">
+                    {{ app.position }}
+                  </h4>
+                  <!-- Edit Link to Admin Change Form -->
+                  <a 
+                    href="../{{ app.id }}/change/" 
+                    class="opacity-0 group-hover:opacity-100 text-[10px] text-blue-600 hover:underline ml-1 shrink-0 transition"
+                  >
+                    Edit
+                  </a>
+                </div>
+                <!-- Company Name -->
+                <p class="text-[11px] text-slate-500 mt-1 truncate">
+                  {{ app.company }}
+                </p>
+
+                <!-- Location if present -->
+                {% if app.location %}
+                  <p class="text-[9px] text-slate-500 mt-2 truncate bg-slate-100 py-0.5 px-1.5 rounded w-max">
+                    {{ app.location }}
+                  </p>
+                {% endif %}
+
+                <!-- Card Footer details -->
+                <div class="flex items-center justify-between mt-3 pt-2 border-t border-slate-50">
+                  <span class="text-[9px] text-slate-400">
+                    {{ app.applied_date|date:"d/m/Y" }}
+                  </span>
+                  
+                  <!-- Group status sub-indicator -->
+                  {% if col.id == 'screening' or col.id == 'interviews' or col.id == 'closed' %}
+                    <span class="text-[8px] uppercase tracking-wider font-semibold text-slate-400 bg-slate-100 px-1.5 rounded shrink-0">
+                      {{ app.get_status_display }}
+                    </span>
+                  {% endif %}
+                </div>
+              </div>
+            {% endfor %}
+          {% endif %}
+        </div>
+      </div>
+    {% endfor %}
+  </div>
+</div>
+
+<!-- Drag and drop JavaScript -->
+<script>
+function drag(ev) {
+    ev.dataTransfer.setData("text/plain", ev.target.id);
+    ev.dataTransfer.setData("appId", ev.target.getAttribute("data-app-id"));
+    ev.target.classList.add("opacity-50");
+}
+
+document.addEventListener("dragend", function(event) {
+    if (event.target.classList.contains("kanban-card")) {
+        event.target.classList.remove("opacity-50");
+    }
+});
+
+function allowDrop(ev) {
+    ev.preventDefault();
+    const column = ev.currentTarget;
+    column.classList.add("border-blue-400", "bg-blue-50/20");
+}
+
+function dragLeave(ev) {
+    const column = ev.currentTarget;
+    column.classList.remove("border-blue-400", "bg-blue-50/20");
+}
+
+function drop(ev, columnId) {
+    ev.preventDefault();
+    const column = ev.currentTarget;
+    column.classList.remove("border-blue-400", "bg-blue-50/20");
+    
+    const cardId = ev.dataTransfer.getData("text/plain");
+    const appId = ev.dataTransfer.getData("appId");
+    
+    if (!appId) return;
+    
+    // Map column ID to default DB status choices
+    let defaultStatus = 'applied';
+    if (columnId === 'screening') defaultStatus = 'phone_screen';
+    else if (columnId === 'interviews') defaultStatus = 'interview';
+    else if (columnId === 'offered') defaultStatus = 'offered';
+    else if (columnId === 'closed') defaultStatus = 'rejected';
+    
+    updateStatus(appId, defaultStatus, cardId, column);
+}
+
+function updateStatus(appId, newStatus, cardId, columnElement) {
+    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+    
+    // Send AJAX request to our custom admin endpoint
+    fetch('update-status/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': csrfToken
+        },
+        body: JSON.stringify({
+            id: parseInt(appId),
+            status: newStatus
+        })
+    })
+    .then(response => {
+        if (!response.ok) throw new Error("HTTP error " + response.status);
+        return response.json();
+    })
+    .then(data => {
+        if (data.success) {
+            // Reload page to re-calculate stats and apply ordering
+            window.location.reload();
+        } else {
+            alert("Error: " + (data.error || "Unknown error"));
+        }
+    })
+    .catch(error => {
+        console.error("Error updating status:", error);
+        alert("Failed to update status. Please try again.");
+    });
+}
+</script>
+{% endblock %}
