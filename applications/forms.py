@@ -1,5 +1,6 @@
 from django import forms
 from .models import JobApplication
+from .widgets import QuillAdminWidget
 
 class JobApplicationForm(forms.ModelForm):
     class Meta:
@@ -9,6 +10,6 @@ class JobApplicationForm(forms.ModelForm):
         widgets = {
             'applied_date': forms.DateInput(attrs={'type': 'date'}),
             'follow_up_date': forms.DateInput(attrs={'type': 'date'}),
-            'description': forms.Textarea(attrs={'rows': 4}),
-            'notes': forms.Textarea(attrs={'rows': 3}),
+            'description': QuillAdminWidget(),
+            'notes': QuillAdminWidget(),
         }

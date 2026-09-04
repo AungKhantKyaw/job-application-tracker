@@ -3,6 +3,7 @@ from django.views.generic import ListView, DetailView, CreateView, UpdateView, D
 from django.urls import reverse_lazy
 from .models import JobApplication
 from .forms import JobApplicationForm
+from django.db.models import Q
 
 class ApplicationListView(ListView):
     model = JobApplication
@@ -15,6 +16,14 @@ class ApplicationListView(ListView):
         status = self.request.GET.get('status')
         if status:
             qs = qs.filter(status=status)
+
+        search_query = self.request.GET.get('q', '').strip()
+        if search_query:
+            qs = qs.filter(
+                Q(company__icontains=search_query)
+                | Q(position__icontains=search_query)
+                | Q(location__icontains=search_query)
+            )
         return qs
     
     def get_context_data(self, **kwargs):

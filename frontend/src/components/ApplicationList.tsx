@@ -10,6 +10,7 @@ import {
 } from "chart.js";
 import { Pie } from "react-chartjs-2";
 import { Briefcase, Trash2, Calendar, LayoutGrid, Kanban } from "lucide-react";
+import RichTextEditor from "./RichTextEditor";
 
 ChartJS.register(ArcElement, Tooltip, Legend);
 
@@ -325,13 +326,14 @@ export default function ApplicationList() {
               onChange={e => setNewApp({ ...newApp, job_url: e.target.value })}
             />
 
-            <textarea
-              className="w-full mb-3 p-2 border rounded resize-none"
-              placeholder="Description"
-              value={newApp.description}
-              onChange={e => setNewApp({ ...newApp, description: e.target.value })}
-              rows={4}
-            />
+            <div className="mb-3">
+              <label className="block text-xs font-medium text-gray-500 mb-1">Description</label>
+              <RichTextEditor
+                value={newApp.description}
+                onChange={value => setNewApp({ ...newApp, description: value })}
+                placeholder="Job Description..."
+              />
+            </div>
 
             <select
               className="w-full mb-3 p-2 border rounded"

@@ -167,6 +167,7 @@
             gap: 10px;
         }
     </style>
+    {% block extra_head %}{% endblock %}
 </head>
 <body>
     <header>
@@ -178,5 +179,6 @@
     <div class="container">
         {% block content %}{% endblock %}
     </div>
+    {% block extra_js %}{% endblock %}
 </body>
 </html>

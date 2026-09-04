@@ -1,6 +1,9 @@
 from django.contrib import admin
-from unfold.admin import ModelAdmin
+from django import forms
+from django.utils.safestring import mark_safe
+from unfold.admin import ModelAdmin, TabularInline
 from .models import JobApplication, StatusHistory
+from .widgets import QuillAdminWidget
 from django.urls import path
 from django.shortcuts import render
 from django.http import JsonResponse
@@ -9,16 +12,32 @@ from django.utils.decorators import method_decorator
 from django.db.models import Q
 import json
 
-class StatusHistoryInline(admin.TabularInline):
+class JobApplicationAdminForm(forms.ModelForm):
+    class Meta:
+        model = JobApplication
+        fields = '__all__'
+        widgets = {
+            'description': QuillAdminWidget(),
+            'notes': QuillAdminWidget(),
+        }
+
+class StatusHistoryInline(TabularInline):
     model = StatusHistory
     extra = 0
-    readonly_fields = ['status', 'changed_at', 'notes']
+    readonly_fields = ['status', 'changed_at', 'formatted_notes']
     can_delete = False
     ordering = ['-changed_at']
-    fields = ['status', 'notes', 'changed_at']
+    fields = ['status', 'formatted_notes', 'changed_at']
+
+    def formatted_notes(self, obj):
+        if not obj or not obj.notes:
+            return "—"
+        return mark_safe(f"<div class='prose prose-sm max-w-none text-slate-700 dark:text-slate-300'>{obj.notes}</div>")
+    formatted_notes.short_description = 'Notes'
 
 @admin.register(JobApplication)
 class JobApplicationAdmin(ModelAdmin):
+    form = JobApplicationAdminForm
     list_display = ['company', 'position', 'status', 'applied_date', 'location']
     list_filter = ['status', 'applied_date']
     search_fields = ['company', 'position', 'location']
@@ -114,3 +133,16 @@ class JobApplicationAdmin(ModelAdmin):
             return JsonResponse({'error': 'Application not found'}, status=404)
         except Exception as e:
             return JsonResponse({'error': str(e)}, status=500)
+
+@admin.register(StatusHistory)
+class StatusHistoryAdmin(ModelAdmin):
+    list_display = ['job_application', 'status', 'changed_at', 'formatted_notes']
+    list_filter = ['status', 'changed_at']
+    readonly_fields = ['job_application', 'status', 'changed_at', 'formatted_notes']
+    fields = ['job_application', 'status', 'changed_at', 'formatted_notes']
+
+    def formatted_notes(self, obj):
+        if not obj or not obj.notes:
+            return "—"
+        return mark_safe(f"<div class='prose prose-sm max-w-none text-slate-700 dark:text-slate-300'>{obj.notes}</div>")
+    formatted_notes.short_description = 'Notes'

@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import api from "../utils/api";
 import { Application } from "../types/Application";
+import RichTextEditor from "./RichTextEditor";
 
 const API_URL = import.meta.env.VITE_API_URL + 'applications/';
 
@@ -249,15 +250,15 @@ export default function ApplicationDetail() {
           <div>
             <span className="font-medium block">Description:</span>
             {!isEditing ? (
-              <p className="mt-1">{application.description || "—"}</p>
+              <div className="mt-1 prose prose-sm max-w-none" dangerouslySetInnerHTML={{ __html: application.description || "—" }} />
             ) : (
-              <textarea
+              <RichTextEditor
                 value={formData.description || ""}
-                onChange={(e) =>
-                  setFormData({ ...formData, description: e.target.value })
+                onChange={(value) =>
+                  setFormData({ ...formData, description: value })
                 }
-                rows={3}
-                className="mt-1 w-full px-2 py-1 border rounded text-sm"
+                placeholder="Job description..."
+                className="mt-1"
               />
             )}
           </div>
@@ -265,15 +266,15 @@ export default function ApplicationDetail() {
           <div>
             <span className="font-medium block">Notes:</span>
             {!isEditing ? (
-              <p className="mt-1">{application.notes || "—"}</p>
+              <div className="mt-1 prose prose-sm max-w-none" dangerouslySetInnerHTML={{ __html: application.notes || "—" }} />
             ) : (
-              <textarea
+              <RichTextEditor
                 value={formData.notes || ""}
-                onChange={(e) =>
-                  setFormData({ ...formData, notes: e.target.value })
+                onChange={(value) =>
+                  setFormData({ ...formData, notes: value })
                 }
-                rows={3}
-                className="mt-1 w-full px-2 py-1 border rounded text-sm"
+                placeholder="Notes..."
+                className="mt-1"
               />
             )}
           </div>

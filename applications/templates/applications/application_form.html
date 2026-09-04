@@ -3,11 +3,15 @@
 
 {% block title %}{% if form.instance.pk %}Edit{% else %}Add{% endif %} Application{% endblock %}
 
+{% block extra_head %}
+{{ form.media.css }}
+{% endblock %}
+
 {% block content %}
 <div class="card">
     <h2 style="margin-bottom: 20px;">{% if form.instance.pk %}Edit{% else %}Add New{% endif %} Application</h2>
 
-    <form method="post">
+    <form method="post" id="app-form">
         {% csrf_token %}
         
         {% for field in form %}
@@ -26,4 +30,8 @@
         </div>
     </form>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+{{ form.media.js }}
 {% endblock %}

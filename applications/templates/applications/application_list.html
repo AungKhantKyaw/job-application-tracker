@@ -6,13 +6,18 @@
 {% block content %}
 <div class="card">
     <h2 style="margin-bottom: 20px;">Your Applications</h2>
-    
-    <div class="filter-bar">
+
+    <div class="filter-bar" style="margin-bottom: 15px; display: flex; align-items: center; gap: 10px;">
         <span style="font-weight: 600;">Filter by status:</span>
         <a href="{% url 'application-list' %}" class="btn" style="padding: 6px 12px; font-size: 13px;">All</a>
         {% for value, label in status_choices %}
-        <a href="?status={{ value }}" class="btn" style="padding: 6px 12px; font-size: 13px;">{{ label }}</a>
+        <a href="?status={{ value }}{% if search_query %}&q={{ search_query|urlencode }}{% endif %}" class="btn" style="padding: 6px 12px; font-size: 13px; {% if current_status == value %}background:#ddd;{% endif %}">{{ label }}</a>
         {% endfor %}
+        <form method="get" style="margin-left:auto; display:flex; gap:5px;" class="search-form">
+            {% if current_status %}<input type="hidden" name="status" value="{{ current_status }}">{% endif %}
+            <input type="text" name="q" placeholder="Search..." value="{{ search_query }}" style="padding:4px 8px; font-size:13px;">
+            <button type="submit" class="btn" style="padding: 6px 12px; font-size:13px;">Search</button>
+        </form>
     </div>
 
     {% if applications %}
@@ -40,6 +45,18 @@
     </table>
     {% else %}
     <p style="text-align: center; color: #999; padding: 40px;">No applications found. <a href="{% url 'application-create' %}">Add your first application</a></p>
+    {% endif %}
+
+    {% if is_paginated %}
+    <nav class="pagination" style="margin-top:20px; display:flex; justify-content:center; gap:5px;">
+        {% if page_obj.has_previous %}
+        <a href="?page={{ page_obj.previous_page_number }}{% if current_status %}&status={{ current_status }}{% endif %}{% if search_query %}&q={{ search_query|urlencode }}{% endif %}" class="btn">Previous</a>
+        {% endif %}
+        <span>Page {{ page_obj.number }} of {{ paginator.num_pages }}</span>
+        {% if page_obj.has_next %}
+        <a href="?page={{ page_obj.next_page_number }}{% if current_status %}&status={{ current_status }}{% endif %}{% if search_query %}&q={{ search_query|urlencode }}{% endif %}" class="btn">Next</a>
+        {% endif %}
+    </nav>
     {% endif %}
 </div>
 {% endblock %}

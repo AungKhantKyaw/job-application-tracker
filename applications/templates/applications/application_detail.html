@@ -35,14 +35,14 @@
     {% if application.description %}
     <div style="margin-top: 20px;">
         <div class="detail-label" style="margin-bottom: 10px;">Description:</div>
-        <div style="white-space: pre-wrap; background: #f8f9fa; padding: 15px; border-radius: 4px;">{{ application.description }}</div>
+        <div style="background: #f8f9fa; padding: 15px; border-radius: 4px;">{{ application.description|safe }}</div>
     </div>
     {% endif %}
 
     {% if application.notes %}
     <div style="margin-top: 20px;">
         <div class="detail-label" style="margin-bottom: 10px;">Notes:</div>
-        <div style="white-space: pre-wrap; background: #f8f9fa; padding: 15px; border-radius: 4px;">{{ application.notes }}</div>
+        <div style="background: #f8f9fa; padding: 15px; border-radius: 4px;">{{ application.notes|safe }}</div>
     </div>
     {% endif %}
 
